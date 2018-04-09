@@ -28,7 +28,7 @@
             var IsCompleted = false;
             if (onProcessAction != null)
             {
-                new Thread
+                var thread = new Thread
                         (
                             new ThreadStart
                                 (
@@ -38,7 +38,7 @@
                                         Thread.Sleep(10);
                                         try
                                         {
-                                            
+
                                             onProcessAction(dialogForm);
                                             IsCompleted = true;
                                         }
@@ -63,7 +63,9 @@
                                         }
                                     }
                                 )
-                        ).Start();
+                        );
+                thread.SetApartmentState(ApartmentState.STA);
+                thread.Start();
                 //wait.Set();
                 if (!IsCompleted)
                 {
@@ -75,7 +77,7 @@
 
         
 
-        public static bool TrySafeFormInvokeAction
+        public static bool TrySafeInvokeFormAction
                                         (
                                             Form dialogForm
                                             , Action<Form> invokeAction
@@ -123,7 +125,7 @@
         }
 
 
-        private static bool TrySafeFormInvokeClose
+        private static bool TrySafeInvokeFormClose
                                 (
                                     Form dialogForm
                                     , Func<Exception, DialogResult> onCaughtExceptionProcessFunc
@@ -144,7 +146,7 @@
 
                             }
                         );
-            bool r = TrySafeFormInvokeAction
+            bool r = TrySafeInvokeFormAction
                 (
                     dialogForm
                     , action

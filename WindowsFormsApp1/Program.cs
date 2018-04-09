@@ -104,7 +104,7 @@ namespace Test2
                                                     for (var i = 0; i < 5; i++)
                                                     {
                                                         TaskWaitingProcessorHelper
-                                                            .TrySafeFormInvokeAction
+                                                            .TrySafeInvokeFormAction
                                                                  (
                                                                         dialog
                                                                         , (d) =>
@@ -117,7 +117,7 @@ namespace Test2
                                                     }
                                                 }
                                                 //模拟异常
-                                                throw new Exception();
+                                                //throw new Exception();
                                                 //正常执行完成后 设置 DialogResultForm
                                                 IDialogResultForm drf = dialog as IDialogResultForm;
                                                 drf.SetDialogResultProcess
@@ -129,7 +129,7 @@ namespace Test2
                                             , (x, d) => //捕获到异常
                                             {
                                                 TaskWaitingProcessorHelper
-                                                            .TrySafeFormInvokeAction
+                                                            .TrySafeInvokeFormAction
                                                                  (
                                                                         d
                                                                         , (dd) =>
