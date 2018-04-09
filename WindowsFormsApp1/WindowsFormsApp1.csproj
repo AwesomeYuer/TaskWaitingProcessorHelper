@@ -49,7 +49,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Program.cs" />
-    <Compile Include="TaskProcessorHelper.cs" />
+    <Compile Include="TaskWaitingProcessorHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="ProcessWaitingCancelableDialog.resx">
       <DependentUpon>ProcessWaitingCancelableDialog.cs</DependentUpon>
