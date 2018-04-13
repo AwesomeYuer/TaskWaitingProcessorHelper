@@ -103,21 +103,19 @@ namespace Test2
                                                     // 发指令序列
                                                     for (var i = 0; i < 5; i++)
                                                     {
-                                                        TaskWaitingProcessorHelper
-                                                            .TrySafeInvokeFormAction
-                                                                 (
-                                                                        dialog
-                                                                        , (d) =>
-                                                                        {
-                                                                            d.Text = DateTime.Now.ToString();
-                                                                        }
-                                                                        , null
+                                                        dialog
+                                                            .TrySafeInvoke
+                                                                (
+                                                                    (d)=>
+                                                                    {
+                                                                        d.Text = DateTime.Now.ToString();
+                                                                    }
                                                                 );
-                                                        Thread.Sleep(1 * 1000);
+                                                         Thread.Sleep(1 * 1000);
                                                     }
                                                 }
                                                 //模拟异常
-                                                //throw new Exception();
+                                                throw new Exception();
                                                 //正常执行完成后 设置 DialogResultForm
                                                 IDialogResultForm drf = dialog as IDialogResultForm;
                                                 drf.SetDialogResultProcess
@@ -128,16 +126,14 @@ namespace Test2
                                             }
                                             , (x, d) => //捕获到异常
                                             {
-                                                TaskWaitingProcessorHelper
-                                                            .TrySafeInvokeFormAction
-                                                                 (
-                                                                        d
-                                                                        , (dd) =>
-                                                                        {
-                                                                            dd.Text = "Exception " + DateTime.Now.ToString();
-                                                                        }
-                                                                        , null
-                                                                );
+                                                d
+                                                 .TrySafeInvoke
+                                                    (
+                                                        (dd) =>
+                                                        {
+                                                            dd.Text = "Exception: " + DateTime.Now.ToString();
+                                                        }
+                                                    );
                                                 IDialogResultForm drf = d as IDialogResultForm;
                                                 drf.SetDialogResultProcess
                                                         (
@@ -160,7 +156,6 @@ namespace Test2
                                     Thread.Sleep(2000);
                                     Console.WriteLine("end: " + result);
                                 }
-
                             }
                         );
                     thread.SetApartmentState(ApartmentState.STA);
@@ -174,7 +169,6 @@ namespace Test2
                 Console.WriteLine("loop in {0}" , result);
             }
             Console.WriteLine("loop out: {0}", result);
-
         }
     }
 }

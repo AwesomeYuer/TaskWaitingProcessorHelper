@@ -14,6 +14,10 @@
 
     public static class TaskWaitingProcessorHelper
     {
+
+
+
+
 #if NETFRAMEWORK4_X
         public static DialogResult ProcessWaitingShowDialog
                     (
@@ -38,7 +42,6 @@
                                         Thread.Sleep(10);
                                         try
                                         {
-
                                             onProcessAction(dialogForm);
                                             IsCompleted = true;
                                         }
@@ -75,38 +78,63 @@
             return r;
         }
 
-        
+
+        public static bool TrySafeInvoke
+                                (
+                                    this Form target
+                                    , Action<Form> action
+                                    , Func<Exception, Form, DialogResult> onCaughtExceptionProcessFunc = null
+                                )
+        {
+            var r = TrySafeInvokeFormAction
+                        (
+                            target
+                            , action
+                            , onCaughtExceptionProcessFunc
+                        );
+            return r;
+        }
+        public static bool TrySafeInvokeClose
+                                (
+                                    this Form target
+                                    , Func<Exception, Form, DialogResult> onCaughtExceptionProcessFunc = null
+                                )
+        {
+            var r = TrySafeInvokeFormClose
+                        (
+                            target
+                            , onCaughtExceptionProcessFunc
+                        );
+            return r;
+        }
 
         public static bool TrySafeInvokeFormAction
                                         (
                                             Form dialogForm
                                             , Action<Form> invokeAction
-                                            , Func<Exception, DialogResult> onCaughtExceptionProcessFunc
+                                            , Func<Exception, Form, DialogResult> onCaughtExceptionProcessFunc = null
                                         )
         {
             bool r = false;
             try
             {
                 if
-                (
-                    dialogForm.IsHandleCreated
-                    && !dialogForm.IsDisposed
-                )
+                    (
+                        dialogForm.IsHandleCreated
+                        && !dialogForm.IsDisposed
+                    )
                 {
-
-                    dialogForm.Invoke
-                            (
-                                new Action
+                    dialogForm
+                            .Invoke
                                 (
-                                    () =>
-                                    {
-                                        invokeAction(dialogForm);
-                                    }
-                                )
-                            
-
-                                
-                            );
+                                    new Action
+                                    (
+                                        () =>
+                                        {
+                                            invokeAction(dialogForm);
+                                        }
+                                    )
+                                );
                     Thread.Sleep(10);
                 }
                 r = true;
@@ -116,46 +144,41 @@
                 r = false;
                 if (onCaughtExceptionProcessFunc != null)
                 {
-                    onCaughtExceptionProcessFunc(e);
+                    var rr = onCaughtExceptionProcessFunc(e, dialogForm);
                 }
             }
             return r;
-
-
         }
 
 
         private static bool TrySafeInvokeFormClose
                                 (
                                     Form dialogForm
-                                    , Func<Exception, DialogResult> onCaughtExceptionProcessFunc
+                                    , Func<Exception, Form, DialogResult> onCaughtExceptionProcessFunc = null
                                 )
         {
             var action = new Action<Form>
-                        (
-                            (x) =>
-                            {
-                                if
-                                (
-                                    dialogForm.IsHandleCreated
-                                    && !dialogForm.IsDisposed
-                                )
+                            (
+                                (x) =>
                                 {
-                                    dialogForm.Close();
+                                    if
+                                        (
+                                            dialogForm.IsHandleCreated
+                                            && !dialogForm.IsDisposed
+                                        )
+                                    {
+                                        dialogForm.Close();
+                                    }
                                 }
-
-                            }
-                        );
+                            );
             bool r = TrySafeInvokeFormAction
-                (
-                    dialogForm
-                    , action
-                    , onCaughtExceptionProcessFunc
-                );
-               
+                            (
+                                dialogForm
+                                , action
+                                , onCaughtExceptionProcessFunc
+                            );
             return r;
         }
 #endif
-
     }
 }
