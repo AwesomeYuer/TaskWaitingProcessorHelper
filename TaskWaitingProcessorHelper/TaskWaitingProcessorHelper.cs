@@ -2,11 +2,10 @@
 {
     using System;
     using System.Threading;
-    using System.Threading.Tasks;
-#if NETFRAMEWORK4_X
+    using System.Windows;
     using System.Windows.Forms;
-#endif
-    interface IDialogResultForm
+
+    public interface IDialogResultForm
     {
         void SetDialogResultProcess(params DialogResult[] results);
     }
@@ -14,11 +13,75 @@
 
     public static class TaskWaitingProcessorHelper
     {
+        public static void ProcessWaitingShowDialogWindow
+                    (
+                        //IWin32Window ownerWindow
+                        Window dialogWindow
+                        , Action<Window> onProcessAction = null
+                        , Func<Exception, Window, DialogResult> onCaughtExceptionProcessFunc = null
+                    )
+        {
+            DialogResult r = default(DialogResult);
+            var IsCompleted = false;
+            if (onProcessAction != null)
+            {
+                var thread = new Thread
+                        (
+                            new ThreadStart
+                                (
+                                    () =>
+                                    {
+                                        //wait.WaitOne();
+                                        Thread.Sleep(10);
+                                        try
+                                        {
+                                            onProcessAction(dialogWindow);
+                                            IsCompleted = true;
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            //r = -1;
+                                            if (onCaughtExceptionProcessFunc != null)
+                                            {
+                                                var rr = onCaughtExceptionProcessFunc(e, dialogWindow);
+                                                //IDialogResultForm form = dialogForm as IDialogResultForm;
+                                                //form.SetDialogResultProcess(rr);
+
+                                            }
+                                        }
+                                        finally
+                                        {
+                                            //TrySafeFormInvokeClose
+                                            //    (
+                                            //        dialogForm
+                                            //        , onCaughtExceptionProcessFunc
+                                            //    );
+
+                                            dialogWindow
+                                                .Dispatcher
+                                                .Invoke
+                                                    (
+                                                        () =>
+                                                        {
+                                                            dialogWindow.Close();
+                                                        }
+                                                    );
+                                        }
+                                    }
+                                )
+                        );
+                thread.SetApartmentState(ApartmentState.STA);
+                thread.Start();
+                //wait.Set();
+                if (!IsCompleted)
+                {
+                     dialogWindow.ShowDialog();
+                }
+            }
+            //return r;
+        }
 
 
-
-
-#if NETFRAMEWORK4_X
         public static DialogResult ProcessWaitingShowDialog
                     (
                         IWin32Window ownerWindow
@@ -151,7 +214,44 @@
         }
 
 
-        private static bool TrySafeInvokeFormClose
+        public static bool TrySafeInvokeWindowAction
+                                (
+                                    Window dialogWindow
+                                    , Action<Window> invokeAction
+                                    , Func<Exception, Window, DialogResult> onCaughtExceptionProcessFunc = null
+                                )
+        {
+            bool r = false;
+            try
+            {
+                dialogWindow
+                        .Dispatcher
+                        .Invoke
+                            (
+                                //new Action
+                                //(
+                                    () =>
+                                    {
+                                        invokeAction(dialogWindow);
+                                    }
+                                //)
+                            );
+                Thread.Sleep(10);
+                r = true;
+            }
+            catch (Exception e)
+            {
+                r = false;
+                if (onCaughtExceptionProcessFunc != null)
+                {
+                    var rr = onCaughtExceptionProcessFunc(e, dialogWindow);
+                }
+            }
+            return r;
+        }
+
+
+        public static bool TrySafeInvokeFormClose
                                 (
                                     Form dialogForm
                                     , Func<Exception, Form, DialogResult> onCaughtExceptionProcessFunc = null
@@ -179,6 +279,36 @@
                             );
             return r;
         }
-#endif
+
+
+        public static bool TrySafeInvokeWindowClose
+                                (
+                                    Window dialogWindow
+                                    , Func<Exception, Window, DialogResult> onCaughtExceptionProcessFunc = null
+                                )
+        {
+            var action = new Action<Window>
+                            (
+                                (x) =>
+                                {
+                                    //if
+                                    //    (
+                                    //        dialogWindow.IsHandleCreated
+                                    //        && !dialogWindow.IsDisposed
+                                    //    )
+                                    //{
+                                        dialogWindow.Close();
+                                    //}
+                                }
+                            );
+            bool r = TrySafeInvokeWindowAction
+                            (
+                                dialogWindow
+                                , action
+                                , onCaughtExceptionProcessFunc
+                            );
+            return r;
+        }
+
     }
 }
